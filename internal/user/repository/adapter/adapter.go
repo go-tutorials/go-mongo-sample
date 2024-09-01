@@ -81,7 +81,7 @@ func (r *UserAdapter) Update(ctx context.Context, user *model.User) (int64, erro
 	update := bson.M{"$set": user}
 	res, err := r.Collection.UpdateOne(ctx, filter, update)
 	if res != nil {
-		return res.ModifiedCount, err
+		return res.MatchedCount, err
 	} else {
 		return 0, err
 	}

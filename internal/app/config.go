@@ -2,15 +2,15 @@ package app
 
 import (
 	"github.com/core-go/core/server"
+	mid "github.com/core-go/log/middleware"
 	"github.com/core-go/log/zap"
-	mid "github.com/core-go/middleware"
 )
 
 type Config struct {
-	Server     server.ServerConf `mapstructure:"server"`
-	Mongo      MongoConfig       `mapstructure:"mongo"`
-	Log        log.Config        `mapstructure:"log"`
-	MiddleWare mid.LogConfig     `mapstructure:"middleware"`
+	Server     server.ServerConfig `mapstructure:"server"`
+	Mongo      MongoConfig         `mapstructure:"mongo"`
+	Log        log.Config          `mapstructure:"log"`
+	MiddleWare mid.LogConfig       `mapstructure:"middleware"`
 }
 
 type MongoConfig struct {
