@@ -10,6 +10,7 @@ import (
 
 	"go-service/internal/user/handler"
 	"go-service/internal/user/repository/adapter"
+	"go-service/internal/user/repository/query"
 	"go-service/internal/user/service"
 )
 
@@ -29,7 +30,7 @@ func NewUserHandler(db *mongo.Database, logError func(context.Context, string, .
 		return nil, err
 	}
 
-	userRepository := adapter.NewUserAdapter(db, adapter.BuildQuery)
+	userRepository := adapter.NewUserAdapter(db, query.BuildQuery)
 	userService := service.NewUserUseCase(userRepository)
 	userHandler := handler.NewUserHandler(userService, validator.Validate, logError)
 	return userHandler, nil
