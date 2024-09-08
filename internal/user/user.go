@@ -32,6 +32,6 @@ func NewUserHandler(db *mongo.Database, logError func(context.Context, string, .
 
 	userRepository := adapter.NewUserAdapter(db, query.BuildQuery)
 	userService := service.NewUserUseCase(userRepository)
-	userHandler := handler.NewUserHandler(userService, validator.Validate, logError)
+	userHandler := handler.NewUserHandler(userService, logError, validator.Validate)
 	return userHandler, nil
 }
