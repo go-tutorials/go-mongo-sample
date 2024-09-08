@@ -16,8 +16,7 @@ import (
 )
 
 func NewUserAdapter(db *mongo.Database, buildQuery func(*model.UserFilter) (bson.D, bson.M)) *UserAdapter {
-	userType := reflect.TypeOf(model.User{})
-	bsonMap := mgo.MakeBsonMap(userType)
+	bsonMap := mgo.MakeBsonMap(reflect.TypeOf(model.User{}))
 	return &UserAdapter{Collection: db.Collection("users"), Map: bsonMap, BuildQuery: buildQuery}
 }
 

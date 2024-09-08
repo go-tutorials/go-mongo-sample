@@ -285,8 +285,8 @@ type DatabaseConfig struct {
 }
 
 func main() {
-    var conf Root
-    err := config.Load(&conf, "configs/config")
+    var cfg Root
+    err := config.Load(&cfg, "configs/config")
     if err != nil {
         panic(err)
     }
@@ -303,15 +303,15 @@ import (
 )
 
 func main() {
-	var conf app.Root
-	config.Load(&conf, "configs/config")
+	var cfg app.Root
+	config.Load(&cfg, "configs/config")
 
 	r := mux.NewRouter()
 
-	log.Initialize(conf.Log)
+	log.Initialize(cfg.Log)
 	r.Use(mid.BuildContext)
 	logger := mid.NewLogger()
-	r.Use(mid.Logger(conf.MiddleWare, log.InfoFields, logger))
+	r.Use(mid.Logger(cfg.MiddleWare, log.InfoFields, logger))
 	r.Use(mid.Recover(log.ErrorMsg))
 }
 ```
