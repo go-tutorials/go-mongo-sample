@@ -17,12 +17,6 @@ import (
 
 const InternalServerError = "Internal Server Error"
 
-func NewUserHandler(service service.UserService, logError func(context.Context, string, ...map[string]interface{}), validate func(context.Context, interface{}) ([]core.ErrorMessage, error)) *UserHandler {
-	_, jsonMap, _ := core.BuildMapField(reflect.TypeOf(model.User{}))
-	paramIndex, filterIndex := s.BuildParams(reflect.TypeOf(model.UserFilter{}))
-	return &UserHandler{service: service, Validate: validate, Map: jsonMap, Error: logError, ParamIndex: paramIndex, FilterIndex: filterIndex}
-}
-
 type UserHandler struct {
 	service     service.UserService
 	Validate    func(context.Context, interface{}) ([]core.ErrorMessage, error)
@@ -30,6 +24,13 @@ type UserHandler struct {
 	Map         map[string]int
 	ParamIndex  map[string]int
 	FilterIndex int
+}
+
+func NewUserHandler(service service.UserService, logError func(context.Context, string, ...map[string]interface{}), validate func(context.Context, interface{}) ([]core.ErrorMessage, error)) *UserHandler {
+	userType := reflect.TypeOf(model.User{})
+	_, jsonMap, _ := core.BuildMapField(userType)
+	paramIndex, filterIndex := s.BuildAttributes(reflect.TypeOf(model.UserFilter{}))
+	return &UserHandler{service: service, Validate: validate, Map: jsonMap, Error: logError, ParamIndex: paramIndex, FilterIndex: filterIndex}
 }
 
 func (h *UserHandler) All(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +51,7 @@ func (h *UserHandler) Load(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.Load(r.Context(), id)
 	if err != nil {
-		h.Error(r.Context(), fmt.Sprintf("Error to get user %s: %s", id, err.Error()))
+		h.Error(r.Context(), fmt.Sprintf("Error to get user '%s': %s", id, err.Error()))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -190,7 +191,7 @@ func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.service.Delete(r.Context(), id)
 	if err != nil {
-		h.Error(r.Context(), fmt.Sprintf("Error to delete user %s: %s", id, err.Error()))
+		h.Error(r.Context(), fmt.Sprintf("Error to delete user '%s': %s", id, err.Error()))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
