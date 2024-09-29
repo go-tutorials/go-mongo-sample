@@ -3,7 +3,7 @@ module go-service
 go 1.17
 
 require (
-	github.com/core-go/config v1.0.2
+	github.com/core-go/config v1.0.6
 	github.com/core-go/core v1.0.4
 	github.com/core-go/health v1.2.1
 	github.com/core-go/log v1.0.9
@@ -21,7 +21,7 @@ require (
 	github.com/go-playground/validator/v10 v10.22.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

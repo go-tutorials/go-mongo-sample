@@ -48,7 +48,6 @@ func main() {
 func GenerateId() string {
 	return random.Random(16)
 }
-
 func Mask(obj map[string]interface{}) {
 	v, ok := obj["phone"]
 	if ok {
