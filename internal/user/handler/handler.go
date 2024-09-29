@@ -8,7 +8,7 @@ import (
 	"reflect"
 
 	"github.com/core-go/core"
-	s "github.com/core-go/search"
+	"github.com/core-go/search"
 	"github.com/gorilla/mux"
 
 	"go-service/internal/user/model"
@@ -29,7 +29,7 @@ type UserHandler struct {
 func NewUserHandler(service service.UserService, logError func(context.Context, string, ...map[string]interface{}), validate func(context.Context, interface{}) ([]core.ErrorMessage, error)) *UserHandler {
 	userType := reflect.TypeOf(model.User{})
 	_, jsonMap, _ := core.BuildMapField(userType)
-	paramIndex, filterIndex := s.BuildAttributes(reflect.TypeOf(model.UserFilter{}))
+	paramIndex, filterIndex := search.BuildAttributes(reflect.TypeOf(model.UserFilter{}))
 	return &UserHandler{service: service, Validate: validate, Map: jsonMap, Error: logError, ParamIndex: paramIndex, FilterIndex: filterIndex}
 }
 
@@ -202,20 +202,20 @@ func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (h *UserHandler) Search(w http.ResponseWriter, r *http.Request) {
-	filter := model.UserFilter{Filter: &s.Filter{}}
-	err := s.Decode(r, &filter, h.ParamIndex, h.FilterIndex)
+	filter := model.UserFilter{Filter: &search.Filter{}}
+	err := search.Decode(r, &filter, h.ParamIndex, h.FilterIndex)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	offset := s.GetOffset(filter.Limit, filter.Page)
+	offset := search.GetOffset(filter.Limit, filter.Page)
 	users, total, err := h.service.Search(r.Context(), &filter, filter.Limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	JSON(w, http.StatusOK, &s.Result{List: &users, Total: total})
+	JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }
 
 func JSON(w http.ResponseWriter, code int, res interface{}) error {
