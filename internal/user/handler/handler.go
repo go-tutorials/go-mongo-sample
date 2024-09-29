@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -13,7 +12,7 @@ import (
 	"go-service/internal/user/service"
 )
 
-func NewUserHandler(service service.UserService, logError func(context.Context, string, ...map[string]interface{}), validate func(context.Context, interface{}) ([]core.ErrorMessage, error), action *core.ActionConfig) *UserHandler {
+func NewUserHandler(service service.UserService, logError core.Log, validate core.Validate[*model.User], action *core.ActionConfig) *UserHandler {
 	userType := reflect.TypeOf(model.User{})
 	parameters := search.CreateParameters(reflect.TypeOf(model.UserFilter{}), userType)
 	attributes := core.CreateAttributes(userType, logError, action)
@@ -22,7 +21,7 @@ func NewUserHandler(service service.UserService, logError func(context.Context, 
 
 type UserHandler struct {
 	service  service.UserService
-	Validate func(context.Context, interface{}) ([]core.ErrorMessage, error)
+	Validate core.Validate[*model.User]
 	*core.Attributes
 	*search.Parameters
 }
@@ -49,66 +48,32 @@ func (h *UserHandler) Load(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var user model.User
-	er1 := core.Decode(w, r, &user)
+	user, er1 := core.Decode[model.User](w, r)
 	if er1 == nil {
 		errors, er2 := h.Validate(r.Context(), &user)
 		if !core.HasError(w, r, errors, er2, h.Error, user, h.Log, h.Resource, h.Action.Create) {
 			res, er3 := h.service.Create(r.Context(), &user)
-			if er3 != nil {
-				h.Error(r.Context(), er3.Error(), core.MakeMap(user))
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			if res > 0 {
-				core.JSON(w, http.StatusCreated, user)
-			} else {
-				core.JSON(w, http.StatusConflict, res)
-			}
+			core.AfterCreated(w, r, &user, res, er3, h.Error)
 		}
 	}
 }
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var user model.User
-	er1 := core.DecodeAndCheckId(w, r, &user, h.Keys, h.Indexes)
+	user, er1 := core.DecodeAndCheckId[model.User](w, r, h.Keys, h.Indexes)
 	if er1 == nil {
 		errors, er2 := h.Validate(r.Context(), &user)
 		if !core.HasError(w, r, errors, er2, h.Error, user, h.Log, h.Resource, h.Action.Update) {
 			res, er3 := h.service.Update(r.Context(), &user)
-			if er3 != nil {
-				h.Error(r.Context(), er3.Error(), core.MakeMap(user))
-				http.Error(w, er3.Error(), http.StatusInternalServerError)
-				return
-			}
-			if res > 0 {
-				core.JSON(w, http.StatusOK, user)
-			} else if res == 0 {
-				core.JSON(w, http.StatusNotFound, res)
-			} else {
-				core.JSON(w, http.StatusConflict, res)
-			}
+			core.AfterSaved(w, r, &user, res, er3, h.Error)
 		}
 	}
 }
 func (h *UserHandler) Patch(w http.ResponseWriter, r *http.Request) {
-	var user model.User
-	r, jsonUser, er1 := core.BuildMapAndCheckId(w, r, &user, h.Keys, h.Indexes)
+	r, user, jsonUser, er1 := core.BuildMapAndCheckId[model.User](w, r, h.Keys, h.Indexes)
 	if er1 == nil {
 		errors, er2 := h.Validate(r.Context(), &user)
 		if !core.HasError(w, r, errors, er2, h.Error, jsonUser, h.Log, h.Resource, h.Action.Patch) {
 			res, er3 := h.service.Patch(r.Context(), jsonUser)
-			if er3 != nil {
-				h.Error(r.Context(), er3.Error(), core.MakeMap(jsonUser))
-				http.Error(w, er3.Error(), http.StatusInternalServerError)
-				return
-			}
-			if res > 0 {
-				core.JSON(w, http.StatusOK, jsonUser)
-			} else if res == 0 {
-				core.JSON(w, http.StatusNotFound, res)
-			} else {
-				core.JSON(w, http.StatusConflict, res)
-			}
+			core.AfterSaved(w, r, jsonUser, res, er3, h.Error)
 		}
 	}
 }
@@ -116,16 +81,7 @@ func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := core.GetRequiredString(w, r)
 	if err == nil {
 		res, err := h.service.Delete(r.Context(), id)
-		if err != nil {
-			h.Error(r.Context(), fmt.Sprintf("Error to delete user '%s': %s", id, err.Error()))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if res > 0 {
-			core.JSON(w, http.StatusOK, res)
-		} else {
-			core.JSON(w, http.StatusNotFound, res)
-		}
+		core.AfterDeleted(w, r, res, err, h.Error)
 	}
 }
 func (h *UserHandler) Search(w http.ResponseWriter, r *http.Request) {
